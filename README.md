@@ -134,36 +134,33 @@ void loop() {
 
 /*Declare L298N Dual H-Bridge Motor Controller directly since there is not a library to load.*/
 //Define L298N Dual H-Bridge Motor Controller Pins
-#define speedPinR 9   //  RIGHT PWM pin connect MODEL-X ENA
-#define RightDirectPin1  12  //  Right Motor direction pin 1 to MODEL-X IN1 
-#define RightDirectPin2  11   // Right Motor direction pin 2 to MODEL-X IN2
+#define speedPinR 3   //  RIGHT PWM pin connect MODEL-X ENA
+#define RightDirectPin1  4  //  Right Motor direction pin 1 to MODEL-X IN1 
+#define RightDirectPin2  2   // Right Motor direction pin 2 to MODEL-X IN2
 #define speedPinL 6     //  Left PWM pin connect MODEL-X ENB
 #define LeftDirectPin1  7   // Left Motor direction pin 1 to MODEL-X IN3
-#define LeftDirectPin2  8   //Left Motor direction pin 1 to MODEL-X IN4
+#define LeftDirectPin2  5   //Left Motor direction pin 1 to MODEL-X IN4
 
-/*From left to right, connect to D3,A1-A3 ,D10*/
-#define LFSensor_0 A0
+/*From left to right, connect to D3,A1-A5 ,D10*/
 #define LFSensor_1 A1
-#define LFSensor_2 A2
 #define LFSensor_3 A3
-#define LFSensor_4 A4
+#define LFSensor_5 A5
+
 
 #define SPEED   180 //motor in   speed
 
  char sensor[5];
- /*read sensor value string, 1 stands for black, 0 starnds for white, i.e 10000 means the first sensor(from left) detect black line, other 4 sensors detected white ground */
+ /*read sensor value string, 1 stands for black, 0 starnds for white, i.e 010 means the first sensor(from left) detect white line, middle sensor detect black and right sensor detect white*/
+ 
 String read_sensor_values()
 {   int sensorvalue=32;
-  sensor[0]= digitalRead(LFSensor_0);
- 
-  sensor[1]=digitalRead(LFSensor_1);
- 
-  sensor[2]=digitalRead(LFSensor_2);
+  sensor[1]= digitalRead(LFSensor_1);
  
   sensor[3]=digitalRead(LFSensor_3);
  
-  sensor[4]=digitalRead(LFSensor_4);
-  sensorvalue +=sensor[0]*16+sensor[1]*8+sensor[2]*4+sensor[3]*2+sensor[4];
+  sensor[5]=digitalRead(LFSensor_5);
+
+  sensorvalue +=sensor[1]*16+sensor[3]*4+sensor[5];
  
   String senstr= String(sensorvalue,BIN);
   Serial.println(senstr);
@@ -191,13 +188,7 @@ void go_Right(void)  //Turn right
   digitalWrite(LeftDirectPin1,HIGH);
   digitalWrite(LeftDirectPin2,LOW);
 }
-void go_Back(void)  //Reverse
-{
-  digitalWrite(RightDirectPin1, LOW);
-  digitalWrite(RightDirectPin2,HIGH);
-  digitalWrite(LeftDirectPin1,LOW);
-  digitalWrite(LeftDirectPin2,HIGH);
-}
+
 void stop_Stop()    //Stop
 {
   digitalWrite(RightDirectPin1, LOW);
@@ -222,44 +213,44 @@ void setup()
  pinMode(LeftDirectPin2,OUTPUT);  //right motor direction Pin 2
 
   /*line follow sensors */
- pinMode(LFSensor_0,INPUT);
  pinMode(LFSensor_1,INPUT);
- pinMode(LFSensor_2,INPUT);
  pinMode(LFSensor_3,INPUT);
- pinMode(LFSensor_4,INPUT); 
+ pinMode(LFSensor_5,INPUT);
  Serial.begin(9600);
 }
 
 void auto_tracking(){
  String sensorval= read_sensor_values();
  //Serial.println(sensorval);
- if (sensorval=="10100" or sensorval=="00100" or sensorval=="01100" or sensorval=="11100" or sensorval=="11000" or sensorval=="10000"  or sensorval=="01000")
+ if (sensorval=="000" or sensorval=="001" or sensorval=="011")
  { 
-  //The black line is in the left of the car, need  left turn 
-      go_Left();  //Turn left
+  //The black line is in the right of the car, need right turn 
+      go_Right();  //Turn right
     set_Motorspeed(0,SPEED);
     delay(200);
     stop_Stop();
     }
 
- if (sensorval=="00101" or sensorval=="00110" or sensorval=="00111" or sensorval=="00011" or sensorval=="00001"  or sensorval=="00010" ){ //The black line is  on the right of the car, need  right turn 
+ if (sensorval=="100" or sensorval=="110"){ //The black line is on the left of the car, need  left turn 
   
-     go_Right();  //Turn right
+     go_Left();  //Turn left
        set_Motorspeed(SPEED,0);
            delay(200);
     stop_Stop();
     }
  
- if (sensorval=="11111" or sensorval=="01111" or sensorval=="11110"){
+ if (sensorval=="111") {
      stop_Stop();   //The car front touch stop line, need stop
      set_Motorspeed(0,0);
+        stop_Stop();
     }
-     if (sensorval=="00000" ){
-     go_Back();   //The car front touch stop line, need stop
-     set_Motorspeed(100,100);
-     delay(100);
-     stop_Stop();
+    
+ if (sensorval=="010) {
+    go_Advance(); //Continue forward
+    set_Motospeed(100,100);
+    delay(100);
     }
+    
 }
 
 void loop(){
