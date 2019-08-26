@@ -1,4 +1,4 @@
-/*Declare L298N Dual H-Bridge Motor Controller directly since there is not a library to load.Define L298N Dual H-Bridge Motor Controller Pins*/
+/*Define L298N Dual H-Bridge Motor Controller Pins*/
 #define speedPinR 3 // RIGHT PWM pin connect MODEL-X ENA 
 #define RightDirectPin1 4 // Right Motor direction pin 1 to MODEL-X IN1 
 #define RightDirectPin2 2 // Right Motor direction pin 2 to MODEL-X IN2 
